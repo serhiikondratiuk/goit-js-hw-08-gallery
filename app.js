@@ -64,13 +64,20 @@ const galleryItems = [
  },
 ];
 
-const galleryContainer = document.querySelector('.js-gallery');
+const refs = {
+ galleryContainerRef: document.querySelector('.js-gallery'),
+ modalWindowRef: document.querySelector('.lightbox'),
+ closeModalBtnRef: document.querySelector('[data-action="close-lightbox"]'),
+ lightboxImageRef: document.querySelector('.lightbox__image'),
+ lightboxOverlayRef: document.querySelector('.lightbox__overlay'),
+};
+
 const galleryMarkup = createGalleryMarkup(galleryItems);
-galleryContainer.insertAdjacentHTML('beforeend', galleryMarkup);
+refs.galleryContainerRef.insertAdjacentHTML('beforeend', galleryMarkup);
 
 function createGalleryMarkup(photos) {
  return photos
-  .map(({ preview, original }) => {
+  .map(({ preview, original, description }) => {
    return `<li class="gallery__item">
     <a
      class="gallery__link"
@@ -78,12 +85,80 @@ function createGalleryMarkup(photos) {
     >
      <img
       class="gallery__image"
-      src="${preview}"
-      data-source="${original}"
-      alt="Tulips"
+      src=${preview}
+      data-source=${original}
+      alt=${description}
      />
     </a>
    </li>`;
   })
   .join('');
+}
+
+refs.galleryContainerRef.addEventListener('click', onModalOpen);
+function onModalOpen(e) {
+ e.preventDefault();
+ if (!e.target.classList.contains('gallery__image')) {
+  return;
+ }
+ refs.modalWindowRef.classList.add('is-open');
+ getImageAttributes(e.target.dataset.source, e.target.alt);
+ window.addEventListener('keydown', onEscPress);
+ window.addEventListener('keydown', onRightPress);
+ window.addEventListener('keydown', onLeftPress);
+}
+
+function getImageAttributes(src, alt) {
+ refs.lightboxImageRef.src = src;
+ refs.lightboxImageRef.alt = alt;
+}
+
+refs.closeModalBtnRef.addEventListener('click', onModalCLose);
+function onModalCLose() {
+ refs.modalWindowRef.classList.remove('is-open');
+ getImageAttributes('', '');
+ window.removeEventListener('keydown', onEscPress);
+ window.removeEventListener('keydown', onRightPress);
+ window.removeEventListener('keydown', onLeftPress);
+}
+
+refs.lightboxOverlayRef.addEventListener('click', onOverlayClick);
+function onOverlayClick() {
+ onModalCLose();
+}
+
+function onEscPress(e) {
+ if (e.code === 'Escape') {
+  onModalCLose();
+ }
+}
+
+const arrayOfImages = document.getElementsByClassName('gallery__image');
+let imageIndex = galleryItems.findIndex(
+ image => image.original === refs.lightboxImageRef.src,
+);
+
+function onRightPress(e) {
+ if (e.code === 'ArrowRight') {
+  if (imageIndex === galleryItems.length - 1) {
+   imageIndex = -1;
+  }
+  imageIndex += 1;
+ }
+ showImage();
+}
+
+function onLeftPress(e) {
+ if (e.code === 'ArrowLeft') {
+  if (imageIndex === 0) {
+   imageIndex += galleryItems.length;
+  }
+  imageIndex -= 1;
+ }
+ showImage();
+}
+
+function showImage() {
+ refs.lightboxImageRef.src = galleryItems[imageIndex].original;
+ refs.lightboxImageRef.alt = galleryItems[imageIndex].description;
 }
