@@ -104,8 +104,6 @@ function onModalOpen(e) {
  refs.modalWindowRef.classList.add('is-open');
  getImageAttributes(e.target.dataset.source, e.target.alt);
  window.addEventListener('keydown', onEscPress);
- window.addEventListener('keydown', onRightPress);
- window.addEventListener('keydown', onLeftPress);
 }
 
 function getImageAttributes(src, alt) {
@@ -118,8 +116,6 @@ function onModalCLose() {
  refs.modalWindowRef.classList.remove('is-open');
  getImageAttributes('', '');
  window.removeEventListener('keydown', onEscPress);
- window.removeEventListener('keydown', onRightPress);
- window.removeEventListener('keydown', onLeftPress);
 }
 
 refs.lightboxOverlayRef.addEventListener('click', onOverlayClick);
@@ -128,37 +124,39 @@ function onOverlayClick() {
 }
 
 function onEscPress(e) {
+ if (e.code === 'ArrowRight') {
+  onRightPress();
+ }
+ if (e.code === 'ArrowLeft') {
+  onLeftPress();
+ }
  if (e.code === 'Escape') {
   onModalCLose();
  }
 }
 
-const arrayOfImages = document.getElementsByClassName('gallery__image');
-let imageIndex = galleryItems.findIndex(
- image => image.original === refs.lightboxImageRef.src,
-);
-
-function onRightPress(e) {
- if (e.code === 'ArrowRight') {
-  if (imageIndex === galleryItems.length - 1) {
-   imageIndex = -1;
-  }
-  imageIndex += 1;
+function onRightPress() {
+ const indexOfCurrentImage = galleryItems.findIndex(
+  image => image.original === refs.lightboxImageRef.src,
+ );
+ if (indexOfCurrentImage !== galleryItems.length - 1) {
+  refs.lightboxImageRef.src = galleryItems[indexOfCurrentImage + 1].original;
+  refs.lightboxImageRef.alt = galleryItems[indexOfCurrentImage + 1].description;
+ } else {
+  refs.lightboxImageRef.src = galleryItems[0].original;
+  refs.lightboxImageRef.alt = galleryItems[0].description;
  }
- showImage();
 }
 
-function onLeftPress(e) {
- if (e.code === 'ArrowLeft') {
-  if (imageIndex === 0) {
-   imageIndex += galleryItems.length;
-  }
-  imageIndex -= 1;
+function onLeftPress() {
+ const indexOfCurrentImage = galleryItems.findIndex(
+  image => image.original === refs.lightboxImageRef.src,
+ );
+ if (indexOfCurrentImage !== 0) {
+  refs.lightboxImageRef.src = galleryItems[indexOfCurrentImage - 1].original;
+  refs.lightboxImageRef.alt = galleryItems[indexOfCurrentImage - 1].description;
+ } else {
+  refs.lightboxImageRef.src = galleryItems[galleryItems.length - 1].original;
+  refs.lightboxImageRef.alt = galleryItems[galleryItems.length - 1].description;
  }
- showImage();
-}
-
-function showImage() {
- refs.lightboxImageRef.src = galleryItems[imageIndex].original;
- refs.lightboxImageRef.alt = galleryItems[imageIndex].description;
 }
